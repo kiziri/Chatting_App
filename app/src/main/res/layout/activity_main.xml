@@ -26,8 +26,7 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/userJoinBtn1"
-            android:onClick="mainPageCLick"
+            android:id="@+id/startBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="25sp"
