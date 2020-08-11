@@ -28,8 +28,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
     private static int GOOGLE_LOGIN = 10;
@@ -43,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseDatabase mDatabase;
     private DatabaseReference mUserRef;
     private FirebaseAnalytics mFirebaseAnalytics;
-    private FirebaseUser user;
+    private FirebaseUser fUser;
 
     private GoogleSignInOptions mGoogleSignInOptions;
     private GoogleApiClient mGoogleAPIClient;
@@ -60,8 +63,8 @@ public class LoginActivity extends AppCompatActivity {
         googleLoginBtn = findViewById(R.id.google_sign_in_btn);
 
         mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
-        if (user != null) {
+        fUser = mAuth.getCurrentUser();
+        if (fUser != null) {
             startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
             finish();
             return;
@@ -70,8 +73,8 @@ public class LoginActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance();
         mUserRef = mDatabase.getReference("Users");
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-        mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN) // 구글로 로그인 설정부
-                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();  // 구글로 로그인 설정부
 
         mGoogleAPIClient = new GoogleApiClient.Builder(this).enableAutoManage(this /*FragmentActivity*/, new GoogleApiClient.OnConnectionFailedListener() {
             @Override
@@ -126,10 +129,47 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isComplete()) {
-                    user = task.getResult().getUser();
-                    final User user = new User();
+                    if (task.isSuccessful()) {
+                        fUser = task.getResult().getUser();
+                        final User user = new User();
+                        user.setEmail(fUser.getEmail());
+                        user.setName(fUser.getDisplayName());
+                        user.setUid(fUser.getUid());
+                        if (fUser.getPhotoUrl() != null) { user.setProfileUrl(fUser.getPhotoUrl().toString()); }
+
+                        mUserRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (!dataSnapshot.exists()) {
+                                    mUserRef.child(user.getUid()).setValue(user, new DatabaseReference.CompletionListener() {
+                                        @Override
+                                        public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                            if (databaseError == null) {
+                                                startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
+                                                finish();
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
+                                    finish();
+                                }
+
+                                Bundle eventBundle = new Bundle();
+                                eventBundle.putString("email", user.getEmail());
+                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) { }
+                        });
+                    } else {
+                        Snackbar.make(mProgressView, "로그인 실패", Snackbar.LENGTH_LONG).show();
+                    }
+                } else {
+                    Snackbar.make(mProgressView, "로그인 실패", Snackbar.LENGTH_LONG).show();
                 }
             }
-        })
+        });
     }
 }
