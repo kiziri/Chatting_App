@@ -59,14 +59,6 @@
         android:hint="Register"
         android:onClick="userSystem" />
 
-    <Button
-        android:id="@+id/cancelBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Cancel"
-        android:layout_marginBottom="5sp"
-        android:onClick="userSystem" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
