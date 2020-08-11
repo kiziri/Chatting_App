@@ -1,5 +1,7 @@
 package com.example.chatting_app;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -8,19 +10,36 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApi;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
+    private static int GOOGLE_LOGIN = 10;
 
     EditText emailEdit, passEdit;
     View mProgressView;
     SignInButton googleLoginBtn;
 
     Intent intent;
-    FirebaseAuth mAuth;
-    FirebaseUser user;
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference mUserRef;
+    private FirebaseAnalytics mFirebaseAnalytics;
+    private FirebaseUser user;
+
+    private GoogleSignInOptions mGoogleSignInOptions;
+    private GoogleApiClient mGoogleAPIClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +51,27 @@ public class LoginActivity extends AppCompatActivity {
 
         mProgressView = (ProgressBar) findViewById(R.id.login_progress);
         googleLoginBtn = findViewById(R.id.google_sign_in_btn);
+
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
+        if (user != null) {
+            startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
+            finish();
+            return;
+        }
+
+        mDatabase = FirebaseDatabase.getInstance();
+        mUserRef = mDatabase.getReference("Users");
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN) // 구글로 로그인 설정부
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+
+        mGoogleAPIClient = new GoogleApiClient.Builder(this).enableAutoManage(this /*FragmentActivity*/, new GoogleApiClient.OnConnectionFailedListener() {
+            @Override
+            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+            }
+        }).addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions).build();
     }
 
     public void userSystem(View view) {
@@ -43,7 +83,25 @@ public class LoginActivity extends AppCompatActivity {
             case R.id.cancelBtn :
                 break;
             case R.id.google_sign_in_btn :
+                signInWithGoogle();
                 break;
+        }
+    }
+
+    // 구글 로그인 화면 실행 단계용 메소드
+    private void signInWithGoogle() {
+        intent = Auth.GoogleSignInApi.getSignInIntent(mGoogleAPIClient);
+        startActivityForResult(intent, GOOGLE_LOGIN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GOOGLE_LOGIN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                GoogleSignInAccount account = result.getSignInAccount();
+            }
         }
     }
 }
