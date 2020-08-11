@@ -79,9 +79,16 @@ public class LoginActivity extends AppCompatActivity {
         mGoogleAPIClient = new GoogleApiClient.Builder(this).enableAutoManage(this /*FragmentActivity*/, new GoogleApiClient.OnConnectionFailedListener() {
             @Override
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+                // 실패 시 처리 하는 부분.
             }
         }).addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions).build();
+
+        googleLoginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                signInWithGoogle();
+            }
+        });
     }
 
     public void userSystem(View view) {
@@ -92,14 +99,12 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case R.id.cancelBtn :
                 break;
-            case R.id.google_sign_in_btn :
-                signInWithGoogle();
-                break;
         }
     }
 
     // 구글 로그인 화면 실행 단계용 메소드
     private void signInWithGoogle() {
+        System.out.println("-------------------");
         intent = Auth.GoogleSignInApi.getSignInIntent(mGoogleAPIClient);
         startActivityForResult(intent, GOOGLE_LOGIN);
     }
@@ -118,15 +123,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-        mAuth.signInWithCredential(credential).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Snackbar.make(mProgressView, "call onFailuer", Snackbar.LENGTH_LONG).show();
-                mDatabase.getReference("error/").setValue(e);
-                mDatabase.getReference("error/message").setValue(e.getMessage());
-                FirebaseCrash.report(e);
-            }
-        }).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isComplete()) {

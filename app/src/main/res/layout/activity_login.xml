@@ -84,7 +84,6 @@
             android:id="@+id/google_sign_in_btn"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:onClick="userSystem"
             android:visibility="visible" />
     </LinearLayout>
 </LinearLayout>
