@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
+import android.view.View;
 
 import com.example.chatting_app.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -29,6 +30,8 @@ public class ChatHomeActivity extends AppCompatActivity {
     @BindView(R.id.viewpager)
     ViewPager mViewPager;
 
+    ViewPagerAdapter mPagerAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,14 +41,24 @@ public class ChatHomeActivity extends AppCompatActivity {
         mTabLayout.setupWithViewPager(mViewPager);
         setUpViewPager();
 
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment currentFragment = mPagerAdapter.getItem(mViewPager.getCurrentItem());
+                if (currentFragment instanceof FriendFragment) {
+                    ((FriendFragment) currentFragment).togglesearchBar();
+                }
+            }
+        });
     }
 
     // viewPager setting method 선언부
     private void setUpViewPager() {
-        ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
-        pagerAdapter.addFragment(new FriendFragment(), "친구");
-        pagerAdapter.addFragment(new ChatFragment(), "채팅");
-        mViewPager.setAdapter(pagerAdapter);
+        mPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        mPagerAdapter.addFragment(new FriendFragment(), "친구");
+        mPagerAdapter.addFragment(new ChatFragment(), "채팅");
+        mPagerAdapter.addFragment(new SearchFragment(), "검색");
+        mViewPager.setAdapter(mPagerAdapter);
     }
 
     // viewPagerAdapter를 생성하는 부분
