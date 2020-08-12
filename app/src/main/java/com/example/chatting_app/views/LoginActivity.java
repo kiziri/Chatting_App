@@ -1,4 +1,4 @@
-package com.example.chatting_app;
+package com.example.chatting_app.views;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import com.example.chatting_app.R;
+import com.example.chatting_app.models.User;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -18,7 +20,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -27,7 +28,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -97,8 +97,6 @@ public class LoginActivity extends AppCompatActivity {
                 break;
             case R.id.registerBtn :
                 break;
-            case R.id.cancelBtn :
-                break;
         }
     }
 
@@ -145,6 +143,10 @@ public class LoginActivity extends AppCompatActivity {
                                             if (databaseError == null) {
                                                 startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
                                                 finish();
+
+                                                Bundle eventBundle = new Bundle();
+                                                eventBundle.putString("email", user.getEmail());
+                                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
                                             }
                                         }
                                     });
@@ -153,10 +155,6 @@ public class LoginActivity extends AppCompatActivity {
                                     startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
                                     finish();
                                 }
-
-                                Bundle eventBundle = new Bundle();
-                                eventBundle.putString("email", user.getEmail());
-                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) { }
