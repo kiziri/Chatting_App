@@ -13,7 +13,7 @@ public class Message {
     private int unreadCount;
     private Date messageDate;
     private MessageType messageType;
-    private List<String> readUserLsit;
+    private List<String> readUserList;
 
     public enum MessageType {
         TEXT, PHOTO

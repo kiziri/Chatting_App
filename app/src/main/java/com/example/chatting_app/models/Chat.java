@@ -12,5 +12,5 @@ public class Chat {
     private Date createData;
     private TextMessage lastMessage;
     private boolean disabled;
-    private  int totalUnreadCount;
+    private int totalUnreadCount;
 }
