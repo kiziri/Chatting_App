@@ -130,7 +130,7 @@ public class ChatActivity extends AppCompatActivity {
             // readUserList에 내 uid 추가
             List<String> readUserUIDList = item.getReadUserList();
             if (readUserUIDList != null) {
-                if (readUserUIDList.contains(fUser.getUid())) {
+                if (!readUserUIDList.contains(fUser.getUid())) {
                     dataSnapshot.getRef().runTransaction(new Transaction.Handler() {
                         @NonNull
                         @Override
@@ -139,16 +139,18 @@ public class ChatActivity extends AppCompatActivity {
 
                             List<String> mutableReadUserList = mutableMessage.getReadUserList();
                             mutableReadUserList.add(fUser.getUid());
-                            int nutableUnreadCount = mutableMessage.getUnreadCount()-1;
+                            int mutableUnreadCount = mutableMessage.getUnreadCount()-1;
 
                             if (mutableMessage.getMessageType() == Message.MessageType.PHOTO) {
                                 PhotoMessage mutablePhotoMessage = mutableData.getValue(PhotoMessage.class);
                                 mutablePhotoMessage.setReadUserList(mutableReadUserList);
-                                mutablePhotoMessage.setUnreadCount(nutableUnreadCount);
+                                mutablePhotoMessage.setUnreadCount(mutableUnreadCount);
+                                mutableData.setValue(mutablePhotoMessage);
                             } else {
                                 TextMessage mutableTextMessage = mutableData.getValue(TextMessage.class);
                                 mutableTextMessage.setReadUserList(mutableReadUserList);
-                                mutableTextMessage.setUnreadCount(nutableUnreadCount);
+                                mutableTextMessage.setUnreadCount(mutableUnreadCount);
+                                mutableData.setValue(mutableTextMessage);
                             }
 
                             return Transaction.success(mutableData);
