@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +15,12 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.example.chatting_app.R;
+import com.example.chatting_app.adapters.FriendListAdapter;
 import com.example.chatting_app.models.User;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,12 +39,15 @@ public class FriendFragment extends Fragment {
     LinearLayout mSearchBar;
     @BindView(R.id.editContent)
     EditText edtEmail;
+    @BindView(R.id.friendRecyclerView)
+    RecyclerView mRecyclerView;
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser fUser;
     private FirebaseDatabase mDatabase;
     private DatabaseReference mUserDBRef;
     private DatabaseReference mFriendsDBRef;
+    private FriendListAdapter friendListAdapter;
 
     public FriendFragment() {
         // Required empty public constructor
@@ -57,6 +64,14 @@ public class FriendFragment extends Fragment {
         mDatabase = FirebaseDatabase.getInstance();
         mFriendsDBRef = mDatabase.getReference("Users").child(fUser.getUid()).child("friends");
         mUserDBRef = mDatabase.getReference("Users");
+
+        // 1. 리얼 타임 디비에서 나의 친구목록을 리스너를 통해 데이터 가져오기
+        addFriendListener();
+        // 2. 가져온 데이터를 통해 recylerView의 어댑터로 추가
+        friendListAdapter = new FriendListAdapter();
+        mRecyclerView.setAdapter(friendListAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        // 3. 아이템별로 이벤트를 주어 선택 친구와의 대화를 가능하도록 함.
 
         return friendView;
     }
@@ -142,8 +157,29 @@ public class FriendFragment extends Fragment {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) { }
         });
+    }
 
+    private void addFriendListener() {
+         mFriendsDBRef.addChildEventListener(new ChildEventListener() {
+             @Override
+             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                 // 친구가 추가되었을 때,
+                 User friend = dataSnapshot.getValue(User.class);
+                 // 2. 가져온 데이터를 통해 recylerView의 어댑터로 추가
+                 drawUI(friend);
+             }
+             @Override
+             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
+             @Override
+             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) { }
+             @Override
+             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
+             @Override
+             public void onCancelled(@NonNull DatabaseError databaseError) { }
+         });
+    }
 
-
+    private void drawUI(User friend) {
+        friendListAdapter.addItem(friend);
     }
 }

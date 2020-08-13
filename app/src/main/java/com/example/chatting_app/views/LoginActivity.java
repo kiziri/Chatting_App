@@ -143,10 +143,6 @@ public class LoginActivity extends AppCompatActivity {
                                             if (databaseError == null) {
                                                 startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
                                                 finish();
-
-                                                Bundle eventBundle = new Bundle();
-                                                eventBundle.putString("email", user.getEmail());
-                                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
                                             }
                                         }
                                     });
@@ -155,6 +151,9 @@ public class LoginActivity extends AppCompatActivity {
                                     startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
                                     finish();
                                 }
+                                Bundle eventBundle = new Bundle();
+                                eventBundle.putString("email", user.getEmail());
+                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) { }
