@@ -5,4 +5,10 @@
     android:layout_height="match_parent"
     tools:context=".views.ChatFragment">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/chatRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </androidx.recyclerview.widget.RecyclerView>
 </FrameLayout>

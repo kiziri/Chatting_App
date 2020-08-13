@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cardview_light_background"
     android:orientation="vertical"
+    android:background="#B0C6D3"
     tools:context=".views.ChatActivity">
 
     <LinearLayout
@@ -19,8 +19,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#807060">
-        </androidx.appcompat.widget.Toolbar>
+            android:background="?attr/colorPrimary"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chat_rec_view"
