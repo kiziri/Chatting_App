@@ -1,5 +1,6 @@
 package com.example.chatting_app.views;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import android.widget.LinearLayout;
 
 import com.example.chatting_app.R;
 import com.example.chatting_app.adapters.FriendListAdapter;
+import com.example.chatting_app.customviews.RecyclerViewItemClickListener;
 import com.example.chatting_app.models.User;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -72,12 +74,44 @@ public class FriendFragment extends Fragment {
         mRecyclerView.setAdapter(friendListAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         // 3. 아이템별로 이벤트를 주어 선택 친구와의 대화를 가능하도록 함.
+        mRecyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(getContext(), new RecyclerViewItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                final User friend = friendListAdapter.getItem(position);
+
+                if (friendListAdapter.getSelectionMode() == FriendListAdapter.UNSELECTION_MODE) {
+                    Snackbar.make(view, friend.getName() + "님과 대화를 하시겠습니까?", Snackbar.LENGTH_LONG).setAction("예", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent chatIntent = new Intent(getActivity(), ChatActivity.class);
+                            chatIntent.putExtra("uid", friend.getUid());
+                            startActivity(chatIntent);
+                        }
+                    }).show();
+                } else {
+                    friend.setSelection(friend.isSelection() ? false : true);
+                    int selectedUserCount = friendListAdapter.getSelectionUserCount();
+                    Snackbar.make(view, selectedUserCount +"명의 친구들과 대화를 하시겠습니까?", Snackbar.LENGTH_LONG).setAction("예", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent chatIntent = new Intent(getActivity(), ChatActivity.class);
+                            chatIntent.putExtra("uids", friendListAdapter.getSelectedUids());
+                            startActivity(chatIntent);
+                        }
+                    }).show();
+                }
+            }
+        }));
 
         return friendView;
     }
 
     public void togglesearchBar() {
         mSearchBar.setVisibility(mSearchBar.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    }
+
+    public void toggleSelectionMode() {
+        friendListAdapter.setSelectionMode(friendListAdapter.getSelectionMode() == FriendListAdapter.SELECTION_MODE ? FriendListAdapter.UNSELECTION_MODE : FriendListAdapter.SELECTION_MODE);
     }
 
     @OnClick(R.id.findBtn)//  찾기 버튼의 이벤트 연결
@@ -162,11 +196,11 @@ public class FriendFragment extends Fragment {
     private void addFriendListener() {
          mFriendsDBRef.addChildEventListener(new ChildEventListener() {
              @Override
-             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                  // 친구가 추가되었을 때,
-                 User friend = dataSnapshot.getValue(User.class);
+                 User friendUser = dataSnapshot.getValue(User.class);
                  // 2. 가져온 데이터를 통해 recylerView의 어댑터로 추가
-                 drawUI(friend);
+                 drawUI(friendUser);
              }
              @Override
              public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
@@ -179,7 +213,7 @@ public class FriendFragment extends Fragment {
          });
     }
 
-    private void drawUI(User friend) {
-        friendListAdapter.addItem(friend);
+    private void drawUI(User getFriend) {
+        friendListAdapter.addItem(getFriend);
     }
 }
