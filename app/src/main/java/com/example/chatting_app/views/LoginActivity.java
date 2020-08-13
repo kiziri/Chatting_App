@@ -148,6 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                                     });
                                 }
                                 else {
+                                    System.out.println("dadsdadad");
                                     startActivity(new Intent(LoginActivity.this, ChatHomeActivity.class));
                                     finish();
                                 }
