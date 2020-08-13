@@ -198,10 +198,9 @@ public class FriendFragment extends Fragment {
              @Override
              public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                  // 친구가 추가되었을 때,
-                 System.out.println("...................." + dataSnapshot.getValue());
-                 User friendUser = dataSnapshot.getValue(User.class);
+                 User friend = dataSnapshot.getValue(User.class);
                  // 2. 가져온 데이터를 통해 recylerView의 어댑터로 추가
-                 drawUI(friendUser);
+                 drawUI(friend);
              }
              @Override
              public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }

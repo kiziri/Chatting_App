@@ -49,9 +49,9 @@ public class ChatHomeActivity extends AppCompatActivity {
                     ((FriendFragment) currentFragment).togglesearchBar();
                 } else {
                     // 친구 탭으로 이동
-                    mViewPager.setCurrentItem(2, true);
+                    mViewPager.setCurrentItem(0, true);
                     // 체크박스 보임 처리
-                    FriendFragment friendFragment = (FriendFragment) mPagerAdapter.getItem(1);
+                    FriendFragment friendFragment = (FriendFragment) mPagerAdapter.getItem(0);
                     friendFragment.toggleSelectionMode();
                 }
             }
