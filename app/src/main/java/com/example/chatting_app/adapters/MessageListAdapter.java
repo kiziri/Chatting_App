@@ -41,6 +41,10 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
         notifyDataSetChanged();
     }
 
+    public void clearItem() {
+        mMessageList.clear();
+    }
+
     public void updateItem(Message item) {
         int position = getItemPosition(item.getMessageId());
 
@@ -89,23 +93,26 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
             photoMessage = (PhotoMessage) item;
         }
 
-        // 메시지의 송수신의 차이 구별
-        if (userId.equals(item.getMessageUser().getUid())) {
-            // 내가 보냄
-            // 텍스트 또는 포토인지 메시지 인지 구별
-            if (item.getMessageType() == Message.MessageType.TEXT) {
+// 내가 보낸 메세지 인지, 받은 메세지 인지 판별 합니다.
+
+        if ( userId.equals(item.getMessageUser().getUid())) {
+            // 내가 보낸 메시지 구현
+            // 텍스트 메세지 인지 포토 메세지 인지 구별
+            if ( item.getMessageType() == Message.MessageType.TEXT ) {
                 holder.sendTxt.setText(textMessage.getMessageText());
                 holder.sendTxt.setVisibility(View.VISIBLE);
                 holder.sendImage.setVisibility(View.GONE);
 
-            } else if (item.getMessageType() == Message.MessageType.PHOTO) {
+            } else if ( item.getMessageType() == Message.MessageType.PHOTO ){
+                Glide.with(holder.sendArea)
+                        .load(photoMessage.getPhotoUrl())
+                        .into(holder.sendImage);
 
-                Glide.with(holder.sendArea).load(photoMessage.getPhotoUrl()).into(holder.sendImage);
                 holder.sendTxt.setVisibility(View.GONE);
                 holder.sendImage.setVisibility(View.VISIBLE);
             }
 
-            if (item.getUnreadCount() > 0) {
+            if ( item.getUnreadCount() > 0 ) {
                 holder.sendUnreadCount.setText(String.valueOf(item.getUnreadCount()));
             } else {
                 holder.sendUnreadCount.setText("");
@@ -113,35 +120,51 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
             holder.sendDate.setText(messageDateFormat.format(item.getMessageDate()));
             holder.yourArea.setVisibility(View.GONE);
             holder.sendArea.setVisibility(View.VISIBLE);
+            holder.exitArea.setVisibility(View.GONE);
 
         } else {
-            // 상대가 보냄
-            if (item.getMessageType() == Message.MessageType.TEXT) {
+            // 상대방이 보낸 경우
+            if ( item.getMessageType() == Message.MessageType.TEXT ) {
 
                 holder.rcvTextView.setText(textMessage.getMessageText());
-
                 holder.rcvTextView.setVisibility(View.VISIBLE);
-                holder.sendImage.setVisibility(View.GONE);
+                holder.rcvImage.setVisibility(View.GONE);
 
-            } else if (item.getMessageType() == Message.MessageType.PHOTO) {
-
-                Glide.with(holder.yourArea).load(photoMessage.getPhotoUrl()).into(holder.rcvImage);
+            } else if ( item.getMessageType() == Message.MessageType.PHOTO ){
+                Glide
+                        .with(holder.yourArea)
+                        .load(photoMessage.getPhotoUrl())
+                        .into(holder.rcvImage);
 
                 holder.rcvTextView.setVisibility(View.GONE);
-                holder.sendImage.setVisibility(View.VISIBLE);
+                holder.rcvImage.setVisibility(View.VISIBLE);
+            } else if ( item.getMessageType() == Message.MessageType.EXIT ) {
+                // #이름 님이 방에서 나가셨습니다.
+                holder.exitTextView.setText(String.format("%s님이 방에서 나가셨습니다.", item.getMessageUser().getName()));
+            }
 
-            }
-            if (item.getUnreadCount() > 0) {
+            if ( item.getUnreadCount() > 0 ) {
                 holder.rcvUnreadCount.setText(String.valueOf(item.getUnreadCount()));
+            }  else {
+                holder.rcvUnreadCount.setText("");
+            }
+
+            if ( item.getMessageUser().getProfileUrl() != null ) {
+                Glide
+                        .with(holder.yourArea)
+                        .load(item.getMessageUser().getProfileUrl())
+                        .into(holder.rcvProfileView);
+            }
+
+            if ( item.getMessageType() == Message.MessageType.EXIT ) {
+                holder.yourArea.setVisibility(View.GONE);
+                holder.sendArea.setVisibility(View.GONE);
+                holder.exitArea.setVisibility(View.VISIBLE);
             } else {
-                holder.sendUnreadCount.setText("");
+                holder.rcvDate.setText(messageDateFormat.format(item.getMessageDate()));
+                holder.yourArea.setVisibility(View.VISIBLE);
+                holder.sendArea.setVisibility(View.GONE);
             }
-            if (item.getMessageUser().getProfileUrl() != null) {
-                Glide.with(holder.yourArea).load(item.getMessageUser().getProfileUrl()).into(holder.rcvProfileView);
-            }
-            holder.rcvDate.setText(messageDateFormat.format(item.getMessageDate()));
-            holder.yourArea.setVisibility(View.VISIBLE);
-            holder.sendArea.setVisibility(View.GONE);
         }
     }
 

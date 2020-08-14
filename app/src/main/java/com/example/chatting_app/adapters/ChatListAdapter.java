@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatting_app.R;
 import com.example.chatting_app.customviews.RoundedImageView;
 import com.example.chatting_app.models.Chat;
+import com.example.chatting_app.models.Message;
 import com.example.chatting_app.views.ChatFragment;
 
 import java.text.SimpleDateFormat;
@@ -30,6 +31,10 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatHo
         mChatList = new ArrayList<>();
     }
 
+    public void setFragment(ChatFragment chatFragment) {
+        this.mChatFragment = chatFragment;
+    }
+
     public void addItem(Chat chat) {
         mChatList.add(chat);
         notifyDataSetChanged();
@@ -38,7 +43,36 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatHo
     public Chat getItem(int position) {
         return this.mChatList.get(position);
     }
+    public Chat getItem(String chatId) {
+        return getItem(getItemPosition(chatId));
+    }
 
+    public void removeItem(Chat chat) {
+        int position = getItemPosition(chat.getChatId());
+        if ( position > -1 ) {
+            mChatList.remove(position);
+            notifyDataSetChanged();
+        }
+    }
+
+    public void updateItem(Chat chat) {
+        int changedItemPosition = getItemPosition(chat.getChatId());
+        if ( changedItemPosition > -1 ) {
+            mChatList.set(changedItemPosition ,chat);
+            notifyItemChanged(changedItemPosition);
+        }
+    }
+
+    private int getItemPosition(String chatId) {
+        int position = 0;
+        for ( Chat currItem : mChatList ) {
+            if ( currItem.getChatId().equals(chatId)) {
+                return position;
+            }
+            position++;
+        }
+        return -1;
+    }
     @NonNull
     @Override
     public ChatHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -50,9 +84,31 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatHo
     public void onBindViewHolder(@NonNull ChatHolder holder, int position) {
         final Chat item = getItem(position);
 
-        holder.lastMessageView.setText(item.getLastMessage().getMessageText());
+        // chatThumbnailView
+        if ( item.getLastMessage() != null ) {
+
+            if ( item.getLastMessage().getMessageType() == Message.MessageType.TEXT) {
+                holder.lastMessageView.setText(item.getLastMessage().getMessageText());
+            } else if (item.getLastMessage().getMessageType() == Message.MessageType.PHOTO) {
+                holder.lastMessageView.setText("(사진)");
+            } else if (item.getLastMessage().getMessageType() == Message.MessageType.EXIT ) {
+                holder.lastMessageView.setText(String.format("%s님이 방에서 나가셨습니다.", item.getLastMessage().getMessageUser().getName()));
+            }
+
+            holder.lastMessageDateView.setText(sdf.format(item.getLastMessage().getMessageDate()));
+        }
+
+
         holder.titleView.setText(item.getTitle());
-        holder.lastMessageDateView.setText(sdf.format(item.getCreateData()));
+        holder.rootView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if ( mChatFragment != null ) {
+                    mChatFragment.leaveChat(item);
+                }
+                return true;
+            }
+        });
         if ( item.getTotalUnreadCount() > 0) {
             holder.totalUnreadCountView.setText(String.valueOf(item.getTotalUnreadCount()));
             holder.totalUnreadCountView.setVisibility(View.VISIBLE);
